@@ -1,0 +1,1590 @@
+/* ==========================================================================
+   1. VARIABLES, CORE RESET & BASE STYLES
+   ========================================================================== */
+:root {
+    --bg-dark: #060913;
+    --card-bg: rgba(255, 255, 255, 0.02);
+    --card-border: rgba(255, 255, 255, 0.07);
+    --cyan: #00f3ff;
+    --success: #00ff87;
+    --text-muted: #7e8b9b;
+    --glow-cyan: rgba(0, 243, 255, 0.15);
+    --glow-success: rgba(0, 255, 135, 0.15);
+}
+
+body {
+    background-color: var(--bg-dark);
+    /* Cyberpunk grid background */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+    background-size: 40px 40px;
+    color: #ffffff;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+/* Global Page Structural Layout Wrapper */
+.site-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Master content viewport zone */
+.main-content {
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 140px 20px 60px 20px;
+    box-sizing: border-box;
+}
+
+/* Legacy layout backup block fallback */
+.container {
+    flex: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 100px;
+    padding-bottom: 60px;
+}
+
+/* ==========================================================================
+   2. PURE STICKY INTERFACE HEADER & BRANDING (EXTREME EDGES)
+   ========================================================================== */
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(6, 9, 19, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    padding: 18px 0;
+}
+
+.header-inner {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 40px;
+    display: flex;
+    justify-content: space-between; /* Pins brand left, actions right */
+    align-items: center;
+    box-sizing: border-box;
+}
+
+/* Interactive Brand Elements */
+.brand-link, .header-logo-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.brand-link:hover, .header-logo-group:hover {
+    opacity: 0.85;
+}
+
+.brand-text {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+    transition: color 0.2s ease;
+}
+
+.header-logo-group:hover .brand-text {
+    color: var(--cyan);
+}
+
+/* Micro Vector Biometric Ring Graphics */
+.mini-logo {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mini-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px dashed var(--cyan);
+    border-radius: 50%;
+    animation: rotationLoop 12s infinite linear;
+}
+
+.mini-core {
+    width: 8px;
+    height: 8px;
+    background-color: var(--cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--cyan);
+}
+
+/* Contextual Header Navigation Button */
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.btn-back-home {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0, 255, 135, 0.05), rgba(0, 255, 135, 0.01));
+    border: 1px solid var(--success); /* Swapped from var(--cyan) to match Register Now */
+    color: var(--success) !important;  /* Forces text to stay green instead of browser default */
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-back-home:hover {
+    background: var(--success);       /* Solid green background on hover */
+    color: #020617 !important;         /* Dark contrast text layout switch */
+    box-shadow: 0 0 20px var(--glow-success);
+    text-shadow: none;
+    transform: translateY(-1px);
+}
+
+/* Responsive Header Reset for Small Viewports */
+@media (max-width: 768px) {
+    .site-header {
+        position: static;
+        padding: 16px 20px;
+    }
+    .header-inner {
+        flex-direction: column;
+        gap: 15px;
+        padding: 0;
+    }
+}
+
+
+/* ==========================================================================
+   3. GLASSMORPHIC CARDS & FORM WIDTH ENGINE
+   ========================================================================== */
+.glass-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 95%; 
+    max-width: 1200px; 
+    margin: 20px auto; 
+    
+    /* background: rgba(255, 255, 255, 0.9); */
+    
+}
+
+.subjects-split-layout { 
+    display: flex; 
+    gap: 40px; 
+    padding: 20px; 
+}
+
+.subject-form-panel { 
+    flex: 1; 
+}
+
+.subject-display-panel { 
+    flex: 2; 
+}
+
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Forces the registration layout wrapper to remain explicitly proportioned */
+.register-card {
+    width: 100% !important;
+    min-width: 450px !important;  /* Adjusted to match your max-width framework */
+    max-width: 450px !important;
+    margin: 0 auto !important;
+}
+
+/* Fallback for smaller screen responsiveness */
+@media (max-width: 600px) {
+    .register-card {
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+}
+
+/* Force form blocks to occupy 100% of the parent card layout */
+.glass-card form {
+    width: 100%;
+    display: block;
+}
+
+/* ==========================================================================
+   4. INTERACTIVE ENTRY PORTAL VIEWS & AVATARS
+   ========================================================================== */
+.portal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+/* Centered Portal Character Variant Viewports */
+.glass-card.centered-portal-layout {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; 
+    align-items: center;
+    text-align: center;
+    padding: 35px 30px;
+    min-height: 380px;
+    overflow: hidden;
+}
+
+.portal-card-body {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    margin-top: 153px;
+}
+
+.portal-background-avatar {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 180px;
+    height: 180px;
+    z-index: 1;
+    pointer-events: none; 
+    background: radial-gradient(circle, rgba(6, 9, 19, 0) 30%, var(--bg-dark) 100%);
+
+    /* Dynamic character alpha bleeding masks */
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
+                        radial-gradient(circle, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
+                radial-gradient(circle, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    
+    opacity: 0.75; 
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.portal-background-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%; 
+}
+
+.glass-card.centered-portal-layout:hover .portal-background-avatar {
+    transform: translateX(-50%) scale(1.05);
+    opacity: 0.95; 
+}
+
+/* Horizontal Inline Card Alternative Views */
+.glass-card.horizontal-layout {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    overflow: hidden;
+}
+
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-avatar {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover .card-avatar img {
+    transform: scale(1.08);
+}
+
+/* Responsive Portal Layout Mechanics */
+@media (max-width: 900px) {
+    .portal-grid {
+        grid-template-columns: 1fr;
+    }
+    .glass-card.horizontal-layout {
+        flex-direction: column-reverse;
+        text-align: center;
+    }
+    .card-avatar {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+    }
+}
+
+/* ==========================================================================
+   5. REGISTRATION FORMS & INPUT STRUCTURES
+   ========================================================================== */
+/* ---------- PREVENT FORM SHRINKING & INSURE STABILITY ---------- */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+    width: 100%; /* Force container to span full width */
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%; /* Forces the input element to expand completely */
+    box-sizing: border-box; /* Includes padding and borders in the total width calculation */
+    padding: 12px 16px;
+    background: rgba(7, 10, 16, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.form-input:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
+    background: rgba(11, 15, 25, 0.9);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-actions-container {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ==========================================================================
+   6. UI BUTTON ARCHITECTURES
+   ========================================================================== */
+.btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 15px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+    background: var(--cyan);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--glow-cyan);
+    transform: translateY(-2px);
+}
+
+/* Success Action Framework Modifiers */
+.btn-success {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.btn-success:hover {
+    background: var(--success);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--glow-success);
+}
+
+/* Premium Form Submission Elements */
+.btn-submit-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(0, 230, 118, 0.15), rgba(0, 230, 118, 0.03));
+    border: 1px solid var(--success);
+    color: #ffffff;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btn-submit-primary:hover {
+    background: var(--success);
+    color: #020617;
+    box-shadow: 0 0 25px var(--glow-success), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: none;
+    transform: translateY(-1px);
+}
+
+.btn-submit-primary:active {
+    transform: translateY(1px);
+}
+
+.btn-link-secondary {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+}
+
+.btn-link-secondary:hover {
+    color: var(--success);
+    background: rgba(0, 230, 118, 0.04);
+    border-color: rgba(0, 230, 118, 0.1);
+}
+
+/* ==========================================================================
+   7. HERO TITLES & SCI-FI LASER RADAR RADIALS
+   ========================================================================== */
+.hero-frame {
+    position: relative;
+    border: 1px solid rgba(0, 243, 255, 0.15);
+    padding: 50px 40px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(0, 243, 255, 0.02) 0%, rgba(0, 0, 0, 0.2) 100%);
+    margin-bottom: 50px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-frame::before, .hero-frame::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--cyan);
+    z-index: 2;
+}
+.hero-frame::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.hero-frame::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: 6px;
+    margin: 0 0 5px 0;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+}
+
+.hero-subtitle-meta {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+/* Scannery Vector Engine Modules */
+.scan-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(0, 243, 255, 0) 0%, rgba(0, 243, 255, 1) 50%, rgba(0, 243, 255, 0) 100%);
+    box-shadow: 0 0 18px 4px var(--cyan);
+    opacity: 0;
+    z-index: 4;
+    pointer-events: none;
+    animation: techScan 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes techScan {
+    0% { top: 0%; opacity: 0; }
+    5% { opacity: 1; }
+    45% { top: 99%; opacity: 1; }
+    50% { top: 99%; opacity: 0; }
+    100% { top: 0%; opacity: 0; }
+}
+
+.logo-display-container {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 20px auto 25px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radar-ring {
+    position: absolute;
+    border: 1px dashed rgba(0, 243, 255, 0.3);
+    border-radius: 50%;
+    animation: rotationLoop 25s linear infinite;
+}
+.radar-ring.outer {
+    width: 150px;
+    height: 150px;
+    border: 1px solid rgba(0, 243, 255, 0.15);
+    border-left-color: var(--cyan);
+    border-right-color: var(--cyan);
+    animation: rotationLoop 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.radar-ring.inner {
+    width: 110px;
+    height: 110px;
+}
+
+.core-lens {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle, #0c1c38 20%, #030814 100%);
+    border: 3px solid var(--cyan);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
+    z-index: 2;
+}
+.core-lens::after {
+    content: 'A';
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan);
+}
+
+.profile-matrix-trace {
+    position: absolute;
+    width: 100px;
+    height: 120px;
+    border: 2px solid rgba(0, 243, 255, 0.25);
+    border-radius: 40% 60% 60% 40% / 50% 30% 70% 50%;
+    left: 45px;
+    top: 15px;
+    pointer-events: none;
+    transform: rotate(-15deg);
+}
+
+@keyframes rotationLoop {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.camera-box {
+    background: rgba(0, 0, 0, 0.4);
+    height: 350px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* ==========================================================================
+   8. FOOTER TERMINAL CORE
+   ========================================================================== */
+.site-footer {
+    width: 100%;
+    padding: 24px 0;
+    text-align: center;
+    border-top: 1px solid var(--card-border);
+    background: rgba(6, 9, 19, 0.9);
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.5px;
+}
+
+.site-footer p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+}
+
+.system-status-indicator {
+    width: 6px;
+    height: 6px;
+    background-color: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--success);
+    display: inline-block;
+}
+
+/* ==========================================================================
+   AUTHENTICATION VIEW & AUTOFILL UI FIXES
+   ========================================================================== */
+
+/* 1. Destroys the browser autofill white background anomaly */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--text-main, #ffffff) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    box-shadow: inset 0 0 0px 1000px rgba(15, 23, 42, 0.6) !important; /* Preserves dark transparency */
+}
+
+/* 2. Primary Layout Buttons (Verify & Enter / Register Node) */
+.btn-submit-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+    border: none;
+    color: #020617 !important;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    margin-bottom: 12px;
+    display: block;
+    text-align: center;
+}
+
+.btn-submit-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(0, 255, 135, 0.4);
+}
+
+/* 3. Secondary Glassmatic Switch Buttons (Register Now / Login Instead) */
+.btn-submit-secondary {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--card-border);
+    color: var(--text-muted) !important;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: block;
+    text-align: center;
+}
+
+.btn-submit-secondary:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--text-main) !important;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Layout container spacing gap */
+.form-actions-container {
+    margin-top: 28px;
+}
+
+/* Header Context Navigation Controllers */
+.dashboard-header-controls {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    width: 100%; 
+    padding: 10px 0; 
+    box-sizing: border-box;
+}
+
+.portal-brand span {
+    color: var(--cyan); 
+    font-weight: 700; 
+    letter-spacing: 0.5px;
+}
+
+.logout-btn {
+    border: 1px solid #ff007c; 
+    color: #ff007c; 
+    padding: 6px 14px; 
+    border-radius: 4px; 
+    text-decoration: none; 
+    font-size: 0.85rem; 
+    font-weight: 500; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 6px; 
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 0, 124, 0.1);
+}
+
+/* Base Form Welcome Text Wrappers */
+.dashboard-welcome h1 {
+    color: var(--cyan); 
+    font-weight: 600; 
+    font-size: 1.8rem; 
+    margin-bottom: 6px;
+}
+
+.dashboard-welcome p {
+    color: var(--text-muted); 
+    font-size: 0.95rem;
+}
+
+/* UNIFORM LOCK-SIZED TAB INTERFACE RULES */
+.tab-navigation-bar {
+    display: flex; 
+    gap: 12px; 
+    border-bottom: 1px solid var(--card-border); 
+    padding-bottom: 15px; 
+    margin-bottom: 25px; 
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: #0c1020; 
+    border: 1px solid var(--card-border); 
+    color: var(--text-muted); 
+    padding: 10px 0; 
+    border-radius: 4px; 
+    font-size: 0.9rem; 
+    font-weight: 600; 
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* FIX SIZING CONSTRAINT CRITERIA */
+    width: 180px;            /* Forces every single tab to occupy exactly 180px width */
+    text-align: center;
+    flex-shrink: 0;         /* Prevents window compaction from warping size scales */
+}
+
+.tab-btn:hover {
+    border-color: rgba(0, 243, 255, 0.5);
+    color: #fff;
+}
+
+.tab-btn.active {
+    background: rgba(0, 243, 255, 0.1); 
+    border: 1px solid #00f3ff; 
+    color: #00f3ff;
+}
+
+/* Feature Grid Layout Definitions */
+.dashboard-grid {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 20px;
+}
+
+.feature-card {
+    background: #0c1020; 
+    border: 1px solid var(--card-border); 
+    padding: 20px; 
+    border-radius: 8px;
+}
+
+.feature-card h3 {
+    font-size: 1.2rem; 
+    margin-bottom: 10px;
+}
+
+.feature-card.face-accent h3 { color: #00f3ff; }
+.feature-card.voice-accent h3 { color: #ff007c; }
+
+.feature-card p {
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    margin-bottom: 20px; 
+    line-height: 1.4;
+}
+
+.btn-submit-primary.launch-face {
+    background: linear-gradient(135deg, #00f3ff 0%, #a200ff 100%); 
+    color: #060913 !important; 
+    font-size: 0.85rem; 
+    padding: 8px 12px; 
+    width: auto;
+}
+
+.btn-submit-primary.launch-voice {
+    background: linear-gradient(135deg, #ff007c 0%, #00ff87 100%); 
+    color: #060913 !important; 
+    font-size: 0.85rem; 
+    padding: 8px 12px; 
+    width: auto;
+}
+
+/* Manage Subjects Two-Column Architecture Rules */
+.subjects-split-layout {
+    display: grid; 
+    grid-template-columns: 1fr 1.5fr; 
+    gap: 30px; 
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .subjects-split-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.subject-form-panel, .subject-display-panel, .records-panel-wrapper {
+    background: #0c1020; 
+    border: 1px solid var(--card-border); 
+    padding: 25px; 
+    border-radius: 8px;
+}
+
+.subject-form-panel h3, .subject-display-panel h3, .records-panel-wrapper h3 {
+    color: var(--cyan); 
+    font-size: 1.2rem; 
+    margin-bottom: 15px;
+}
+
+.subject-display-panel h3, .records-panel-wrapper h3 {
+    color: #fff;
+}
+
+.form-group-node {
+    margin-bottom: 15px;
+}
+
+.form-group-node label {
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    display: block; 
+    margin-bottom: 5px;
+}
+
+.form-group-node .form-input {
+    background: #060913; 
+    border: 1px solid var(--card-border); 
+    color: #fff; 
+    width: 100%; 
+    padding: 10px; 
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.generate-subj-btn {
+    background: linear-gradient(135deg, #00f3ff 0%, #00ff87 100%); 
+    color: #060913 !important;
+}
+
+#no_subjects_msg {
+    color: var(--text-muted); 
+    font-size: 0.9rem;
+}
+
+/* Dynamic Subject Listing Enclosures */
+.subject-node-card {
+    background: #060913; 
+    border: 1px solid var(--card-border); 
+    padding: 15px; 
+    border-radius: 6px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.subject-node-card h4 {
+    color: #fff; 
+    margin: 0 0 4px 0; 
+    font-size: 1.05rem;
+}
+
+.code-badge {
+    color: var(--cyan); 
+    font-size: 0.8rem; 
+    font-family: monospace; 
+    background: rgba(0,243,255,0.05); 
+    padding: 2px 6px; 
+    border-radius: 3px;
+}
+
+.share-node-btn {
+    width: auto; 
+    padding: 6px 12px; 
+    font-size: 0.8rem; 
+    background: rgba(162,0,255,0.1); 
+    border: 1px solid #a200ff; 
+    color: #a200ff !important;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.share-node-btn:hover {
+    background: #a200ff;
+    color: #fff !important;
+}
+
+/* Records Panel Extensions */
+.records-panel-wrapper p {
+    color: var(--text-muted); 
+    font-size: 0.9rem; 
+    margin-bottom: 20px;
+}
+
+.ledger-empty-placeholder {
+    border: 1px dashed var(--card-border); 
+    padding: 40px; 
+    text-align: center; 
+    color: var(--text-muted); 
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+/* Overlay Sharing Modal Windows */
+.modal-overlay {
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(6, 9, 19, 0.85); 
+    backdrop-filter: blur(8px); 
+    z-index: 9999; 
+    justify-content: center; 
+    align-items: center;
+}
+
+.modal-card {
+    background: #0c1020; 
+    border: 1px solid var(--card-border); 
+    padding: 30px; 
+    border-radius: 12px; 
+    text-align: center; 
+    max-width: 360px; 
+    width: 90%;
+    box-sizing: border-box;
+}
+
+.modal-card p {
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    margin-bottom: 20px;
+}
+
+#qrcode_canvas {
+    background: #fff; 
+    padding: 15px; 
+    border-radius: 8px; 
+    display: inline-block; 
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+}
+
+.copy-btn {
+    background: #00f3ff; 
+    color: #060913 !important; 
+    font-size: 0.85rem; 
+    padding: 10px;
+}
+
+.close-btn {
+    border: 1px solid var(--card-border); 
+    padding: 8px; 
+    color: var(--text-muted);
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   DASHBOARD SIZE STABILIZATION MATRIX
+   ========================================================================== */
+
+/* 1. Force the active tab panel viewport to have an identical minimum baseline height */
+.tab-panel {
+    min-height: 380px;
+    box-sizing: border-box;
+}
+
+/* 2. Equalize internal panel sizing rules so elements don't shift layout boundaries */
+.dashboard-grid, 
+.subjects-split-layout, 
+.records-panel-wrapper {
+    min-height: 340px;
+    box-sizing: border-box;
+}
+
+/* 3. Ensure child containers fill up the height natively */
+.feature-card, 
+.subject-form-panel, 
+.subject-display-panel {
+    min-height: 320px;
+    box-sizing: border-box;
+}
+
+
+/* Button Styles */
+.edit-node-btn, .delete-node-btn { 
+    padding: 8px 12px; 
+    border-radius: 4px; 
+    border: none; 
+    cursor: pointer; 
+    transition: background 0.2s;
+    font-size: 14px;
+}
+
+.edit-node-btn { 
+    background: #333; 
+    color: white; 
+}
+
+.edit-node-btn:hover { 
+    background: #555; 
+}
+
+.delete-node-btn { 
+    background: #ff4444; 
+    color: white; 
+}
+
+.delete-node-btn:hover { 
+    background: #d32f2f; 
+}
+
+/* Shared Layout Components */
+.workspace-stack { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    grid-template-rows: 1fr; 
+    width: 100%; 
+    box-sizing: border-box; 
+}
+.panel-layer { 
+    grid-column: 1 / 2; 
+    grid-row: 1 / 2; 
+    width: 100%; 
+    opacity: 0; 
+    pointer-events: none; 
+    visibility: hidden; 
+    transition: opacity 0.15s ease-in-out; 
+}
+.panel-layer.active-layer { 
+    opacity: 1; 
+    pointer-events: auto; 
+    visibility: visible; 
+}
+
+/* Teacher Dashboard Layout */
+.subjects-split-layout { 
+    display: flex; 
+    gap: 40px; 
+    padding: 20px; 
+}
+.subject-form-panel { 
+    flex: 1; 
+}
+.subject-display-panel { 
+    flex: 2; 
+}
+.subject-node-card { 
+    margin-bottom: 15px; 
+    padding-bottom: 15px; 
+    border-bottom: 1px solid #333; 
+}
+.edit-mode-container {
+    margin-top: 15px; 
+    background: #1a1a24; 
+    padding: 15px; 
+    border-radius: 8px; 
+    border: 1px solid #333;
+}
+.edit-mode-container label {
+    display: block; 
+    font-size: 0.85em; 
+    color: #00d4ff; 
+    margin-bottom: 4px; 
+    font-weight: bold;
+}
+.edit-mode-container input { 
+    width: 100%; 
+    padding: 8px; 
+    border-radius: 4px; 
+    border: 1px solid #444; 
+    background: #0f0f15; 
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+/* Student Dashboard Layout */
+.student-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 10px;
+}
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.status-active {
+    background: rgba(0, 212, 255, 0.15);
+    color: #00d4ff;
+    border: 1px solid #00d4ff;
+}
+.status-pending {
+    background: rgba(255, 184, 0, 0.15);
+    color: #ffb800;
+    border: 1px solid #ffb800;
+}
+.biometric-scanner-box {
+    border: 2px dashed #333;
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    margin: 20px 0;
+    background: rgba(15, 15, 21, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+.biometric-scanner-box.scanning {
+    border-color: #00d4ff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+.scan-laser {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, transparent, #00d4ff, transparent);
+    animation: scan 2s linear infinite;
+    display: none;
+}
+@keyframes scan {
+    0% { top: 0%; }
+    50% { top: 100%; }
+    100% { top: 0%; }
+}
+
+/* --- Subject Metric Badges Styles --- */
+.subject-stats-container {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    transition: all 0.2s ease-in-out;
+}
+
+.stat-badge:hover {
+    background: rgba(0, 212, 255, 0.05);
+    border-color: rgba(0, 212, 255, 0.4);
+}
+
+.stat-icon {
+    margin-right: 6px;
+    font-size: 1rem;
+}
+
+.stat-label {
+    margin-right: 5px;
+    color: #a0aec0;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #00d4ff;
+}
+
+
+/* ==========================================================================
+   GLANCE STUDENT ATTENDANCE PORTAL ENGINE STYLES
+   ========================================================================== */
+
+/* Dynamic Analytics Matrix Grid Container */
+.attendance-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin: 15px 0 25px 0;
+}
+
+.metric-data-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid #2d3748;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.metric-data-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.metric-data-value {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+}
+
+.metric-data-label {
+    font-size: 10px;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+}
+
+/* System Accent Status Borders and Fonts */
+.value-slate { color: #a0aec0; }
+.value-cyan { color: #00d4ff; }
+.value-coral { color: #ff6b6b; }
+.value-emerald { color: #00ffcc; font-size: 24px; }
+
+.accent-ratio { border-left: 3px solid #4a5568; }
+.accent-present { border-left: 3px solid #00d4ff; }
+.accent-absent { border-left: 3px solid #ff6b6b; }
+.accent-percentage { border-left: 3px solid #00ffcc; }
+
+/* Dynamic Chronological History Log Layout */
+.attendance-history-ledger {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.ledger-header-banner {
+    font-size: 12px;
+    font-weight: bold;
+    color: #00d4ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.ledger-scroller-viewport {
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.ledger-history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 6px;
+    border-bottom: 1px solid #1a1a1a;
+}
+
+.ledger-history-row:last-child {
+    border-bottom: none;
+}
+
+.ledger-history-date {
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* Status Labels & Badges */
+.status-pill {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pill-present {
+    background: rgba(0, 255, 204, 0.08);
+    color: #00ffcc;
+    border: 1px solid rgba(0, 255, 204, 0.15);
+}
+
+.pill-absent {
+    background: rgba(255, 107, 107, 0.08);
+    color: #ff6b6b;
+    border: 1px solid rgba(255, 107, 107, 0.15);
+}
+
+/* Fallback Empty States */
+.ledger-empty-placeholder {
+    text-align: center;
+    color: #4a5568;
+    padding: 35px 10px;
+    font-size: 13px;
+}
+
+.ledger-empty-placeholder span {
+    font-size: 26px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* Custom Component Scrollbars */
+.ledger-scroller-viewport::-webkit-scrollbar {
+    width: 5px;
+}
+
+.ledger-scroller-viewport::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.ledger-scroller-viewport::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+}
+
+/* ==========================================================================
+   TEACHER PORTAL: PREMIUM HISTORICAL LEDGER STYLES
+   ========================================================================== */
+
+/* Main Base Layout Container Box */
+.premium-ledger-card {
+    background: rgba(20, 20, 27, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 15px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Header Text Blocks */
+.premium-ledger-header {
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 15px;
+}
+
+.premium-ledger-header h3 {
+    color: #ffffff;
+    font-size: 1.3rem;
+    margin: 0 0 6px 0;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.premium-ledger-header p {
+    color: #8a8f98;
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+/* Scrollable View Frame */
+.premium-table-viewport {
+    max-height: 440px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* Data Table Grid Configurations */
+.premium-matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    margin: 0;
+}
+
+/* Table Text Headings */
+.premium-matrix-table th {
+    color: #00d4ff;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-matrix-table th:first-child { 
+    border-radius: 6px 0 0 6px; 
+}
+
+.premium-matrix-table th:last-child { 
+    border-radius: 0 6px 6px 0; 
+    text-align: right; 
+}
+
+/* Row Actions and Hover States */
+.premium-row {
+    background: rgba(255, 255, 255, 0.01);
+    transition: all 0.2s ease;
+}
+
+.premium-row:hover {
+    background: rgba(0, 212, 255, 0.03);
+    transform: translateY(-1px);
+}
+
+.premium-row td {
+    padding: 14px 16px;
+    vertical-align: middle;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.premium-row td:first-child {
+    border-left: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 6px 0 0 6px;
+}
+
+.premium-row td:last-child {
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    border-radius: 0 6px 6px 0;
+    text-align: right;
+}
+
+/* Typography Specifics */
+.premium-sess-token {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    color: #00d4ff;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.premium-subject-title {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 3px;
+}
+
+.premium-subject-sub {
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.premium-subject-sub span { 
+    color: #94a3b8; 
+}
+
+.premium-time-main { 
+    font-weight: 500; 
+    color: #ffffff; 
+}
+
+.premium-time-sub { 
+    font-size: 0.78rem; 
+    color: #64748b; 
+    margin-top: 2px; 
+}
+
+/* System State Verification Badges */
+.badge-archived-log {
+    display: inline-block;
+    background: rgba(0, 212, 255, 0.06);
+    color: #00d4ff;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.badge-live-log {
+    display: inline-block;
+    background: rgba(234, 179, 8, 0.06);
+    color: #eab308;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+

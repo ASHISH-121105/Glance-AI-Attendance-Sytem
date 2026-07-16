@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block header_actions %}
+<div class="back-to-home-container">
+    <a href="{% url 'home_page' %}" class="back-link">← Back to Home</a>
+</div>
+{% endblock header_actions %}
+
+{% block content %}
+<div class="glass-card register-card" style="margin-top: 40px; box-sizing: border-box;">
+
+    <h1 style="color: var(--cyan); font-weight: 600; font-size: 1.6rem; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; text-align: center;">
+        🎓 Student Registration
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; margin-bottom: 24px;">Initialize your digital multimodal biometric profile node.</p>
+    
+    <hr style="border: 0; border-top: 1px solid var(--card-border); margin-bottom: 25px;">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 0.9rem; 
+                        background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; text-align: center;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'student_signup' %}" autocomplete="off" style="width: 100%;">
+        {% csrf_token %}
+    
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_uni">University Name</label>
+            <input type="text" id="stud_uni" name="university_name" class="form-input" placeholder="e.g., Babu Banarasi Das University" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <!-- BIOMETRIC SELECTOR MODULE -->
+        <div class="form-group" style="background: #0c1020; padding: 18px 15px; border-radius: 8px; border: 1px solid var(--card-border); margin-bottom: 25px; box-sizing: border-box; width: 100%;">
+            <label style="color: var(--cyan); display: block; margin-bottom: 15px; font-weight: 500; font-size: 0.9rem; letter-spacing: 0.5px;">🛡️ SELECT PRIMARY BIOMETRIC NODE</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%;">
+                <label style="color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; background: rgba(0, 243, 255, 0.03); padding: 12px; border-radius: 6px; border: 1px solid rgba(0, 243, 255, 0.2); white-space: nowrap;">
+                    <input type="radio" name="biometric_choice" value="face" checked style="accent-color: var(--cyan); width: 18px; height: 18px; margin: 0;"> 
+                    📷 CAMERA SNAP
+                </label>
+                <label style="color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--card-border); white-space: nowrap;">
+                    <input type="radio" name="biometric_choice" value="voice" style="accent-color: var(--cyan); width: 18px; height: 18px; margin: 0;"> 
+                    🎙️ VOICE TOKEN
+                </label>
+            </div>
+        </div>
+
+        <!-- WEBCAM INTERFACE PANEL -->
+        <div id="face_biometric_wrapper" class="form-group" style="text-align: center; margin-top: 15px; margin-bottom: 25px; box-sizing: border-box; width: 100%;">
+            <label style="display: block; margin-bottom: 12px; color: var(--cyan); text-align: left; font-size: 0.9rem;">📷 BIOMETRIC VIDEO NODE CAPTURE</label>
+            
+            <div class="video-wrap" style="position: relative; width: 100%; max-width: 400px; margin: 0 auto; aspect-ratio: 4/3; border-radius: 8px; overflow: hidden; background: #0c1020; border: 1px solid var(--card-border); box-sizing: border-box;">
+                <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <canvas id="snapshot" style="display: none; width: 100%; height: 100%; object-fit: cover;"></canvas>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+                <button type="button" id="capture_btn" style="padding: 10px 20px; font-size: 0.85rem; width: auto; background: #00f3ff; color: #060913; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;">
+                    Take Snapshot
+                </button>
+                <button type="button" id="retake_btn" style="display: none; border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; color: var(--text-muted); background: transparent; cursor: pointer; font-size: 0.85rem;">
+                    Retake Photo
+                </button>
+            </div>
+            <input type="hidden" id="face_image_base64" name="face_image_base64">
+        </div>
+
+        <!-- AUDIO INTERFACE PANEL -->
+        <div id="voice_biometric_wrapper" class="form-group" style="text-align: center; margin-top: 15px; margin-bottom: 25px; display: none; flex-direction: column; align-items: center; box-sizing: border-box; width: 100%;">
+            <label style="display: block; margin-bottom: 12px; color: var(--cyan); text-align: left; width: 100%; font-size: 0.9rem;">🎙️ BIOMETRIC VOICE TOKEN NODE</label>
+            
+            <div class="audio-wrap" style="width: 100%; padding: 25px 20px; border-radius: 8px; background: #0c1020; border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;">
+                <p id="audio_status" style="color: var(--text-muted); font-size: 0.9rem; margin: 0 auto 15px auto; text-align: center; width: 100%;">Microphone status: Ready</p>
+                
+                <div id="audio_wave" style="display: none; height: 30px; margin: 0 auto 15px auto; width: 60%; justify-content: center; gap: 4px; align-items: center;">
+                    <span style="display:inline-block; width:4px; height:100%; background:var(--cyan); animation: bounce 0.8s infinite ease-in-out alternate;"></span>
+                    <span style="display:inline-block; width:4px; height:60%; background:var(--cyan); animation: bounce 0.8s infinite 0.2s alternate;"></span>
+                    <span style="display:inline-block; width:4px; height:80%; background:var(--cyan); animation: bounce 0.8s infinite 0.4s alternate;"></span>
+                </div>
+                
+                <div style="display: flex; gap: 10px; justify-content: center; width: 100%;">
+                    <button type="button" id="record_btn" style="padding: 10px 20px; font-size: 0.85rem; width: auto; background: #00f3ff; color: #060913; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;">
+                        Start Recording (7s)
+                    </button>
+                    <button type="button" id="listen_btn" style="display: none; border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; color: var(--text-muted); background: transparent; cursor: pointer;">
+                        Play Capture
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" id="voice_base64" name="voice_base64">
+        </div>
+        
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_roll">University Roll Number</label>
+            <input type="text" id="stud_roll" name="roll_number" class="form-input" placeholder="e.g., 23012301001" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_name">Full Name</label>
+            <input type="text" id="stud_name" name="name" class="form-input" placeholder="Enter your full name" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_email">Institutional Email</label>
+            <input type="email" id="stud_email" name="email" class="form-input" placeholder="name@university.com" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_password">Create Password</label>
+            <input type="password" id="stud_password" name="password" class="form-input" placeholder="••••••••" autocomplete="new-password" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="stud_confirm">Confirm Password</label>
+            <input type="password" id="stud_confirm" name="confirm_password" class="form-input" placeholder="••••••••" autocomplete="new-password" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <!-- Submission Actions Panel -->
+        <div class="form-actions-container" style="margin-top: 30px; display: flex; flex-direction: column; gap: 15px; width: 100%; box-sizing: border-box;">
+            <button type="submit" style="width: 100%; padding: 14px; background: #00f3ff; color: #060913; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); letter-spacing: 0.3px;">
+                Register Student Profile
+            </button>
+            <a href="{% url 'student_login' %}" class="btn-link-secondary" style="text-align: center; color: var(--text-muted); font-size: 0.9rem; text-decoration: none; margin-top: 5px;">
+                Already Registered? Login
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Unified Stylesheet Node Overrides -->
+<style>
+    @keyframes bounce {
+        0% { transform: scaleY(0.3); }
+        100% { transform: scaleY(1.1); }
+    }
+    .form-input {
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    /* Forces active fields into radiant cyan instead of green when clicked */
+    .form-input:focus {
+        border-color: #00f3ff !important;
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.25) !important;
+        outline: none !important;
+    }
+</style>
+
+<script>
+    // --- MODULE DISPLAY INTERACTION HANDLING ---
+    const faceWrapper = document.getElementById('face_biometric_wrapper');
+    const voiceWrapper = document.getElementById('voice_biometric_wrapper');
+    const radioChoices = document.querySelectorAll('input[name="biometric_choice"]');
+    
+    const base64Input = document.getElementById('face_image_base64');
+    const voiceBase64Input = document.getElementById('voice_base64');
+
+    radioChoices.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            radioChoices.forEach(r => r.closest('label').style.borderColor = 'var(--card-border)');
+            radioChoices.forEach(r => r.closest('label').style.background = 'transparent');
+            
+            const selectedLabel = e.target.closest('label');
+            selectedLabel.style.borderColor = 'rgba(0, 243, 255, 0.4)';
+            selectedLabel.style.background = 'rgba(0, 243, 255, 0.03)';
+
+            if (e.target.value === 'face') {
+                faceWrapper.style.display = 'block';
+                voiceWrapper.style.display = 'none';
+                voiceBase64Input.value = "";
+            } else {
+                faceWrapper.style.display = 'none';
+                voiceWrapper.style.display = 'flex';
+                base64Input.value = "";
+            }
+        });
+    });
+
+    // --- CAMERA STREAM HARDWARE NODE ---
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('snapshot');
+    const captureBtn = document.getElementById('capture_btn');
+    const retakeBtn = document.getElementById('retake_btn');
+
+    navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => { console.warn("Camera pipeline unavailable or sandboxed."); });
+
+    captureBtn.addEventListener('click', () => {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        base64Input.value = canvas.toDataURL('image/jpeg');
+        video.style.display = 'none';
+        canvas.style.display = 'block';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'inline-block';
+    });
+
+    retakeBtn.addEventListener('click', () => {
+        base64Input.value = "";
+        canvas.style.display = 'none';
+        video.style.display = 'block';
+        retakeBtn.style.display = 'none';
+        captureBtn.style.display = 'inline-block';
+    });
+
+    // --- MICROPHONE CAPTURE STREAM ---
+    let mediaRecorder, audioChunks = [], audioBlob;
+    const recordBtn = document.getElementById('record_btn');
+    const listenBtn = document.getElementById('listen_btn');
+    const audioStatus = document.getElementById('audio_status');
+    const audioWave = document.getElementById('audio_wave');
+
+    recordBtn.addEventListener('click', async () => {
+        audioChunks = [];
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
+            mediaRecorder.onstop = () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                audioStatus.innerText = "Voice token captured and packed!";
+                audioWave.style.display = 'none';
+                listenBtn.style.display = 'inline-block';
+                recordBtn.innerText = "Re-record Voice";
+                recordBtn.disabled = false;
+
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = () => { voiceBase64Input.value = reader.result; };
+            };
+
+            mediaRecorder.start();
+            audioStatus.innerText = "Recording... speak clearly into the microphone node.";
+            audioWave.style.display = 'flex';
+            recordBtn.disabled = true;
+
+            setTimeout(() => {
+                if(mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            }, 7000);
+        } catch (err) {
+            alert("Microphone hardware layer mapping failed.");
+        }
+    });
+
+    listenBtn.addEventListener('click', () => {
+        if (audioBlob) { new Audio(URL.createObjectURL(audioBlob)).play(); }
+    });
+</script>
+{% endblock %}

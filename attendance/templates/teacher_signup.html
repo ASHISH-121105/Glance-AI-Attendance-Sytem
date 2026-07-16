@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block header_actions %}
+<div class="back-to-home-container">
+    <a href="{% url 'home_page' %}" class="back-link">← Back to Home</a>
+</div>
+{% endblock header_actions %}
+
+{% block content %}
+<div class="glass-card register-card" style="margin-top: 40px;">
+    <h1 style="color: var(--success); font-weight: 600; font-size: 1.6rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+        📋 Teacher Registration
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">Create a new Teacher Account.</p>
+    
+    <hr style="border: 0; border-top: 1px solid var(--card-border); margin-bottom: 25px;">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 0.9rem; 
+                        background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'teacher_signup' %}" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="reg_username">Username</label>
+            <input type="text" id="reg_username" name="username" class="form-input" placeholder="Enter username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reg_name">Full Name</label>
+            <input type="text" id="reg_name" name="name" class="form-input" placeholder="Enter full name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reg_password">Password</label>
+            <input type="password" id="reg_password" name="password" class="form-input" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-group">
+            <label for="reg_confirm">Confirm Password</label>
+            <input type="password" id="reg_confirm" name="confirm_password" class="form-input" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-actions-container">
+            <button type="submit" class="btn-submit-primary">
+                Register New Account
+            </button>
+            <a href="{% url 'teacher_login' %}" class="btn-link-secondary">
+                Login Instead
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

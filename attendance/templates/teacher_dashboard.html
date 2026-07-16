@@ -1,0 +1,751 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_actions %}
+<!-- Portal Role Identifier Badge -->
+<div class="portal-brand" style="color: var(--cyan); font-weight: 700; letter-spacing: 0.5px; font-size: 1rem; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 1001;">
+    <span>👨‍🏫 TEACHER PORTAL</span>
+</div>
+
+<!-- Logout Link -->
+<a href="{% url 'teacher_logout' %}" class="logout-btn" style="text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box;">
+    🚪 Logout
+</a>
+{% endblock header_actions %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+    .workspace-stack { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; width: 100%; box-sizing: border-box; }
+    .panel-layer { grid-column: 1 / 2; grid-row: 1 / 2; width: 100%; opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.15s ease-in-out; }
+    .panel-layer.active-layer { opacity: 1; pointer-events: auto; visibility: visible; }
+    
+    .edit-mode input { width: 100%; margin-bottom: 8px; padding: 5px; }
+
+    /* --- Subject Metric Badges Styles --- */
+    .subject-stats-container {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .stat-badge:hover {
+        background: rgba(0, 212, 255, 0.05);
+        border-color: rgba(0, 212, 255, 0.4);
+    }
+
+    .stat-icon {
+        margin-right: 6px;
+        font-size: 1rem;
+    }
+
+    .stat-label {
+        margin-right: 5px;
+        color: #a0aec0;
+    }
+
+    .stat-value {
+        font-weight: 700;
+        color: #00d4ff;
+    }
+
+    /* Target Node Dropdown Custom Element Styles */
+    .node-management-select:focus {
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.25) !important;
+        outline: none;
+    }
+    .node-management-select optgroup {
+        background: #0f0f15;
+        color: #00d4ff;
+        font-weight: bold;
+    }
+    .node-management-select option {
+        background: #151520;
+        color: #fff;
+        font-weight: normal;
+    }
+
+    .btn-export-csv:hover {
+        opacity: 0.85;
+        box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+
+    /* --- Audio Pipeline Structural Visualizer Additions --- */
+    .audio-visualizer-wave.active { 
+        opacity: 1 !important; 
+    }
+    .audio-visualizer-wave.active .wave-bar { 
+        animation: bounce-bar 0.6s ease-in-out infinite alternate; 
+    }
+    .audio-visualizer-wave.active .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .audio-visualizer-wave.active .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .audio-visualizer-wave.active .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .audio-visualizer-wave.active .wave-bar:nth-child(5) { animation-delay: 0.15s; }
+
+    @keyframes bounce-bar {
+        0% { height: 5px; }
+        100% { height: 30px; }
+    }
+    .recording-active {
+        background: #ef4444 !important;
+        color: #ffffff !important;
+    }
+</style>
+
+<div id="image-choice-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6, 9, 19, 0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+    <div style="background: #0c1020; border: 1px solid var(--card-border); padding: 30px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; box-sizing: border-box;">
+        <h3 style="color: var(--cyan); margin-top: 0; margin-bottom: 10px; font-size: 1.25rem;">📸 Group Photo Source</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px;">Select how you want to capture the class session image layout.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button onclick="triggerLocalFileExplorer()" class="btn-submit-primary" style="margin: 0; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); color: #fff !important;">
+                📁 Upload Local Image File
+            </button>
+            <button onclick="initializeWebcamStream()" class="btn-submit-primary" style="margin: 0; background: linear-gradient(135deg, #00f3ff 0%, #00ff87 100%); color: #060913 !important;">
+                📷 Capture Live via Webcam
+            </button>
+            <button onclick="dismissImageChoiceModal()" class="close-btn" style="width: 100%; margin-top: 8px;">Dismiss</button>
+        </div>
+    </div>
+</div>
+
+<div id="webcam-camera-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6, 9, 19, 0.95); z-index: 10000; justify-content: center; align-items: center; flex-direction: column; gap: 20px;">
+    <div id="camera-container-box" style="position: relative; width: 90%; max-width: 640px; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; border: 2px solid var(--cyan); box-shadow: 0 0 30px var(--glow-cyan);">
+        <video id="dashboard-live-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+        <canvas id="dashboard-snapshot-canvas" style="display: none;"></canvas>
+    </div>
+    
+    <div style="display: flex; gap: 15px; width: 100%; max-width: 640px; padding: 0 10px; box-sizing: border-box; align-items: center;">
+        <button onclick="executeCameraFreezeSnapshot()" style="flex: 1; height: 48px; padding: 0; margin: 0; background: #00ff87; color: #060913 !important; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; transition: transform 0.2s, opacity 0.2s;">
+            📸 Freeze Snapshot
+        </button>
+        <button onclick="deactivateWebcamStream()" style="flex: 1; height: 48px; padding: 0; margin: 0; background: rgba(239, 68, 68, 0.05); color: #ff4444 !important; font-size: 0.95rem; font-weight: 600; border: 1px solid #ff4444; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-sizing: border-box; transition: background 0.2s, transform 0.2s;">
+            ✕ Cancel Capture
+        </button>
+    </div>
+</div>
+
+<div class="glass-card">
+    <div class="dashboard-welcome" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+        <h1>Attendance Control Space</h1>
+        <p>Configure class matrices, take biometric attendance, and manage subjects.</p>
+    </div>
+
+    <div class="tab-navigation-bar">
+        <button onclick="switchTab('take-attendance')" id="tab-btn-take-attendance" class="tab-btn active">📸 Take Attendance</button>
+        <button onclick="switchTab('manage-subjects')" id="tab-btn-manage-subjects" class="tab-btn">📚 Manage Subjects</button>
+        <button onclick="switchTab('attendance-records')" id="tab-btn-attendance-records" class="tab-btn">📊 Records Matrix</button>
+    </div>
+
+    <div class="workspace-stack">
+        <div id="panel-take-attendance" class="panel-layer active-layer">
+            
+            <div style="margin-bottom: 25px; background: rgba(255, 255, 255, 0.02); padding: 18px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <label style="display: block; font-size: 0.9em; color: #00d4ff; margin-bottom: 8px; font-weight: bold;">🎯 Select Target Course Matrix:</label>
+                <select id="attendance-subject-selector" onchange="toggleSubjectCardVisibility(this.value)" style="width: 100%; padding: 10px; background: #0f0f15; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 0.95em; outline: none;">
+                    <option value="">-- Choose an Active Course Node --</option>
+                    {% for class_name, subjects_list in grouped_subjects.items %}
+                        <optgroup label="Class: {{ class_name }}">
+                            {% for subject in subjects_list %}
+                                <option value="{{ subject.id }}">{{ subject.name }} (Sec: {{ subject.section }})</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="feature-card face-accent">
+                    <h3>📸 Group Photo Scan</h3>
+                    <p style="color: #a0aec0; font-size: 0.85em; margin: 5px 0 15px 0; line-height: 1.4;">Upload a class group photo to automatically verify faces and mark attendance logs.</p>
+                    <input type="file" id="photo-upload-input" accept="image/*" style="display: none;" onchange="processAttendancePhoto()">
+                    <button class="btn-submit-primary launch-face btn-core-launch" onclick="launchPhotoPipeline()">
+                        Launch Core
+                    </button>
+                </div>
+
+                <div class="feature-card voice-accent">
+                    <h3 style="color: #ff007f !important; display: flex; align-items: center; gap: 8px;">🎙️ Audio Pipeline</h3>
+                    <p style="color: #a0aec0; font-size: 0.85em; margin: 5px 0 15px 0; line-height: 1.4;">Deploy biometrics and listen for student roll-calls to map signatures natively using speech processing vectors.</p>
+                    <div style="display: flex; align-items: center; gap: 20px; margin-top: 15px;">
+                        <button id="voice-capture-btn" class="btn-submit-primary launch-voice" onclick="toggleVoiceCapturePipeline()" style="background: linear-gradient(135deg, #d946ef 0%, #10b981 100%); color: #060913; font-weight: 800; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">Listen</button>
+                        
+                        <div id="audio-wave-monitor" class="audio-visualizer-wave" style="display: flex; align-items: flex-end; gap: 4px; height: 30px; opacity: 0; transition: opacity 0.3s ease;">
+                            <div class="wave-bar" style="width: 4px; height: 5px; background: #10b981; border-radius: 2px;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 5px; background: #22c55e; border-radius: 2px;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 5px; background: #a855f7; border-radius: 2px;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 5px; background: #d946ef; border-radius: 2px;"></div>
+                            <div class="wave-bar" style="width: 4px; height: 5px; background: #00d4ff; border-radius: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-manage-subjects" class="panel-layer">
+            <div class="subjects-split-layout" style="display: flex; gap: 40px; padding: 20px;">
+                <div class="subject-form-panel" style="flex: 1;">
+                    <h3>Create New Subject</h3>
+                    <form id="subject_creation_form" onsubmit="createNewSubject(event)">
+                        {% csrf_token %}
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Subject Name</label>
+                            <input type="text" name="name" placeholder="e.g. Mathematics" class="form-input" required>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Subject Code</label>
+                            <input type="text" name="code" placeholder="e.g. NCS101" class="form-input" required>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Class Name</label>
+                            <input type="text" name="class_name" placeholder="e.g. CSE" class="form-input" required>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Section</label>
+                            <input type="text" name="section" placeholder="e.g. 1A" class="form-input" required>
+                        </div>
+
+                        <button type="submit" class="btn-submit-primary" style="margin-top: 10px; width: 100%;">Generate Subject</button>
+                    </form>
+                </div>
+
+                <div class="subject-display-panel" style="flex: 2;">
+                    <h3>Active Course Nodes</h3>
+                    
+                    {% if grouped_subjects %}
+                        <div style="margin-bottom: 20px;">
+                            <select id="manage-nodes-dropdown" class="node-management-select" onchange="toggleSubjectCardVisibility(this.value)"
+                                    style="width: 100%; padding: 12px; background: #0f0f15; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 0.95rem; cursor: pointer;">
+                                <option value="">-- Select an Active Subject Node to Manage --</option>
+                                {% for class_name, subjects_list in grouped_subjects.items %}
+                                    <optgroup label="Class: {{ class_name }}">
+                                        {% for subject in subjects_list %}
+                                            <option value="{{ subject.id }}">{{ subject.name }} [{{ subject.code }} - Sec: {{ subject.section }}]</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <div id="subjects_container">
+                        {% for class_name, subjects_list in grouped_subjects.items %}
+                            {% for subject in subjects_list %}
+                                
+                                <div class="subject-node-card management-subject-wrapper" id="mgmt-card-{{ subject.id }}" data-id="{{ subject.id }}" style="display: none; margin-top: 10px; border: 1px solid #444; padding: 15px; border-radius: 8px; background: rgba(255,255,255,0.01);">
+                                    
+                                    <div class="display-mode">
+                                        <div>
+                                            <span style="font-size: 0.8rem; color: #00d4ff; font-weight: bold; display: block; margin-bottom: 4px;">Class: {{ class_name }}</span>
+                                            <strong><span class="subject-name" style="font-size: 1.2rem; color: #fff;">{{ subject.name }}</span></strong> 
+                                            <span style="color: #aaa;">(Sec: <span class="subject-section">{{ subject.section }}</span>)</span>
+                                            <br><span class="code-badge" style="margin-top: 6px; display: inline-block;">Code: <span class="subject-code">{{ subject.code }}</span></span>
+                                        </div>
+
+                                        <div class="subject-stats-container">
+                                            <div class="stat-badge">
+                                                <span class="stat-icon">👥</span>
+                                                <span class="stat-label">Enrolled:</span>
+                                                <span class="stat-value">{{ subject.students.count }}</span>
+                                            </div>
+                                            <div class="stat-badge">
+                                                <span class="stat-icon">📅</span>
+                                                <span class="stat-label">Sessions Held:</span>
+                                                <span class="stat-value">{{ subject.attendance_sessions.count }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div style="display: flex; gap: 8px; margin-top: 15px;">
+                                            <button onclick="toggleEdit(this, true)" class="edit-node-btn">Edit</button>
+                                            <button onclick="deleteSubject('{{ subject.id }}')" class="delete-node-btn">Delete</button>
+                                            <div class="action-wrapper">
+                                                <i class="link-icon" onclick="toggleShareOptions('{{ subject.id }}')" style="cursor:pointer; font-size: 20px;">🔗</i>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="edit-mode" style="display:none; margin-top: 15px; background: #1a1a24; padding: 15px; border-radius: 8px; border: 1px solid #333;">
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Subject Name</label>
+                                            <input type="text" class="edit-name form-input" value="{{ subject.name }}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #0f0f15; color: #fff;">
+                                        </div>
+
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Subject Code</label>
+                                            <input type="text" class="edit-code form-input" value="{{ subject.code }}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #0f0f15; color: #fff;">
+                                        </div>
+
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Class Name</label>
+                                            <input type="text" class="edit-class form-input" value="{{ subject.class_name }}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #0f0f15; color: #fff;">
+                                        </div>
+
+                                        <div style="margin-bottom: 15px;">
+                                            <label style="display: block; font-size: 0.85em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Section</label>
+                                            <input type="text" class="edit-section form-input" value="{{ subject.section }}" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #444; background: #0f0f15; color: #fff;">
+                                        </div>
+
+                                        <div style="display: flex; gap: 10px;">
+                                            <button onclick="saveEdit('{{ subject.id }}', this)" style="background: #00d4ff; color: #000; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-weight: bold; flex: 1;">Save Changes</button>
+                                            <button onclick="toggleEdit(this, false)" style="background: #444; color: #fff; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-weight: bold; flex: 1;">Cancel</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="share-options-{{ subject.id }}" style="display:none; margin-top: 15px; border: 1px solid #444; padding: 15px; border-radius: 6px; background: rgba(0,0,0,0.2);">
+                                        <button onclick="showQR(window.location.origin + '/attendance/' + '{{ subject.code }}' + '/' + '{{ subject.section }}/', 'qrcode-{{ subject.id }}')" style="background:#222; color:#fff; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-right: 8px;">Generate QR</button>
+                                        <button onclick="copyLink(window.location.origin + '/attendance/' + '{{ subject.code }}' + '/' + '{{ subject.section }}/')" style="background:#222; color:#fff; border: 1px solid #444; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Copy Shareable Link</button>
+                                        <div id="qrcode-{{ subject.id }}" style="margin-top: 15px; display:flex; justify-content:center;"></div>
+                                    </div>
+                                    
+                                </div>
+                            {% endfor %}
+                        {% empty %}
+                            <p style="color: #666; text-align: center; margin-top: 20px;">No subjects found. Create one to get started.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-attendance-records" class="panel-layer">
+            <div class="premium-ledger-card">
+                
+                <div class="premium-ledger-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding-bottom: 12px; border-bottom: 1px solid #333; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin: 0 0 4px 0;">Historical Audit Ledger</h3>
+                        <p style="margin: 0;">Review and monitor biometrically processed attendance logs compiled across your assigned class nodes.</p>
+                    </div>
+                    <button onclick="downloadAttendanceCSV()" class="btn-export-csv" style="background: #00d4ff; color: #060913; border: none; padding: 10px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: background 0.2s, box-shadow 0.2s;">
+                        📥 Export Ledger (CSV)
+                    </button>
+                </div>
+
+                <div class="premium-table-viewport">
+                    <table class="premium-matrix-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Session ID</th>
+                                <th style="width: 45%;">Subject & Module Node</th>
+                                <th style="width: 25%;">Timestamp Frame</th>
+                                <th style="width: 15%; text-align: right;">Status Matrix</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for class_name, subjects_list in grouped_subjects.items %}
+                                {% for subject in subjects_list %}
+                                    {% for session in subject.attendance_sessions.all %}
+                                        <tr class="premium-row" data-subject-id="{{ subject.id }}">
+                                            <td class="premium-sess-token">#SESS-{{ session.id|stringformat:"04d" }}</td>
+                                            <td>
+                                                <div class="premium-subject-title">{{ subject.name }}</div>
+                                                <div class="premium-subject-sub">
+                                                    Code: <span>{{ subject.code }}</span> | Class: <span>{{ subject.class_name }} ({{ subject.section }})</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="premium-time-main">{{ session.created_at|date:"M d, Y" }}</div>
+                                                <div class="premium-time-sub">{{ session.created_at|date:"h:i A" }}</div>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {% if session.is_active %}
+                                                    <span class="badge-live-log">● LIVE TRACKING</span>
+                                                {% else %}
+                                                    <span class="badge-archived-log">✓ ARCHIVED LOG</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // System variables for managing audio media recorders
+    let mediaRecorderInstance = null;
+    let recordedAudioChunks = [];
+    let voiceRecordingActive = false;
+    let cameraStreamTrack = null;
+
+    // --- PHOTO PIPELINE: SELECTION & MODAL TRIGGERS ---
+    function launchPhotoPipeline() {
+        const selector = document.getElementById('attendance-subject-selector');
+        if (!selector || selector.value === "") {
+            alert("Operation Aborted: Please select an active subject card track before deploying AI scanning pipelines.");
+            return;
+        }
+        document.getElementById('image-choice-modal').style.display = 'flex';
+    }
+
+    function dismissImageChoiceModal() {
+        document.getElementById('image-choice-modal').style.display = 'none';
+    }
+
+    function triggerLocalFileExplorer() {
+        dismissImageChoiceModal();
+        document.getElementById('photo-upload-input').click();
+    }
+
+    // --- WEBCAM HARDWARE SYSTEM RUNTIME ENGINE ---
+    async function initializeWebcamStream() {
+        dismissImageChoiceModal();
+        const video = document.getElementById('dashboard-live-video');
+        try {
+            cameraStreamTrack = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            video.srcObject = cameraStreamTrack;
+            document.getElementById('webcam-camera-overlay').style.display = 'flex';
+        } catch (err) {
+            console.error("Camera node missing or blocked:", err);
+            alert("Hardware access exception: Unable to secure camera stream permissions.");
+        }
+    }
+
+    function deactivateWebcamStream() {
+        if (cameraStreamTrack) {
+            cameraStreamTrack.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('webcam-camera-overlay').style.display = 'none';
+    }
+
+    function executeCameraFreezeSnapshot() {
+        const video = document.getElementById('dashboard-live-video');
+        const canvas = document.getElementById('dashboard-snapshot-canvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob((imageBlob) => {
+            deactivateWebcamStream();
+            dispatchImagePayload(imageBlob, "live_classroom_capture.jpg");
+        }, 'image/jpeg', 0.95);
+    }
+
+    function processAttendancePhoto() {
+        const fileInput = document.getElementById('photo-upload-input');
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        
+        const selectedFile = fileInput.files[0];
+        dispatchImagePayload(selectedFile, selectedFile.name);
+        fileInput.value = ""; 
+    }
+
+    // Unified dispatcher for processing images over network view gateways
+    function dispatchImagePayload(fileOrBlob, filename) {
+        const subjectId = document.getElementById('attendance-subject-selector').value;
+        const payloadForm = new FormData();
+        payloadForm.append('subject_id', subjectId);
+        payloadForm.append('class_photo', fileOrBlob, filename);
+
+        const coreBtn = document.querySelector('.btn-core-launch');
+        const originalText = coreBtn.innerText;
+        coreBtn.innerText = "⏳ Processing Matrices...";
+        coreBtn.disabled = true;
+
+        fetch('/teacher/upload-attendance/', { 
+            method: 'POST', 
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            body: payloadForm 
+        })
+        .then(res => res.json())
+        .then(data => {
+            coreBtn.innerText = originalText;
+            coreBtn.disabled = false;
+
+            if (data.status === 'success') {
+                let namesRoster = (data.present_list && data.present_list.length > 0)
+                    ? data.present_list.map(name => `• ${name}`).join('\n')
+                    : 'No student profiles successfully matched.';
+
+                alert(`🎯 Recognition Completed!\n\n• Faces Tracked: ${data.detected}\n• Total Present: ${data.marked_present}\n\nVerified Students Present:\n${namesRoster}`);
+                window.location.reload(); 
+            } else {
+                alert(`Biometric Processing Fault: ${data.message}`);
+            }
+        })
+        .catch(err => {
+            coreBtn.innerText = originalText;
+            coreBtn.disabled = false;
+            console.error(err);
+        });
+    }
+
+    // --- AUDIO PIPELINE: DIRECT LIVE CAPTURE & MATCH VERIFICATION ---
+    async function toggleVoiceCapturePipeline() {
+        const selector = document.getElementById('attendance-subject-selector');
+        const subjectId = selector ? selector.value : "";
+        
+        if (!subjectId || subjectId === "") {
+            alert("Operation Aborted: Please select an active subject card track before deploying AI scanning pipelines.");
+            return;
+        }
+
+        const actionButton = document.getElementById('voice-capture-btn');
+        const visualizerWave = document.getElementById('audio-wave-monitor');
+
+        if (!voiceRecordingActive) {
+            try {
+                const userAudioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorderInstance = new MediaRecorder(userAudioStream);
+                recordedAudioChunks = [];
+
+                mediaRecorderInstance.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedAudioChunks.push(e.data);
+                };
+
+                mediaRecorderInstance.onstop = async () => {
+                    const audioBlobPayload = new Blob(recordedAudioChunks, { type: 'audio/webm' });
+                    await dispatchVoiceBiometricsPayload(audioBlobPayload, subjectId);
+                    userAudioStream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorderInstance.start();
+                voiceRecordingActive = true;
+                actionButton.innerText = "🛑 Stop Listening";
+                actionButton.classList.add('recording-active');
+                visualizerWave.classList.add('active');
+
+                setTimeout(() => {
+                    if (voiceRecordingActive) toggleVoiceCapturePipeline();
+                }, 6000);
+
+            } catch (err) {
+                console.error("Microphone linkage failure:", err);
+                alert("Hardware Interruption: Access to microphone device array was denied.");
+            }
+        } else {
+            if (mediaRecorderInstance && mediaRecorderInstance.state !== "inactive") {
+                mediaRecorderInstance.stop();
+            }
+            voiceRecordingActive = false;
+            actionButton.innerText = "Listen";
+            actionButton.classList.remove('recording-active');
+            visualizerWave.classList.remove('active');
+        }
+    }
+
+    async function dispatchVoiceBiometricsPayload(audioBlob, targetSubjectId) {
+        const runtimeForm = new FormData();
+        runtimeForm.append('subject_id', targetSubjectId);
+        runtimeForm.append('voice_sample', audioBlob, 'live_roll_call.webm');
+
+        const actionButton = document.getElementById('voice-capture-btn');
+        actionButton.innerText = "⏳ Verifying Voice...";
+        actionButton.disabled = true;
+
+        try {
+            const response = await fetch('/teacher/upload-voice-attendance/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: runtimeForm
+            });
+            
+            if (!response.ok) throw new Error("Server processed sample unhealthily.");
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert(`🎯 Attendance Marked!\n\nVerified Present Student: ${data.student_name}`);
+                window.location.reload();
+            } else {
+                alert(`Voice Model Classification Warning: ${data.message}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Transmission Error: Failed to evaluate voice token across the array.");
+        } finally {
+            actionButton.innerText = "Listen";
+            actionButton.disabled = false;
+        }
+    }
+
+    // --- ORIGINAL CONTROLLERS & HISTORY DATA SHIFTERS ---
+    function toggleSubjectCardVisibility(selectedSubjectId) {
+        const attDropdown = document.getElementById('attendance-subject-selector');
+        const mgmtDropdown = document.getElementById('manage-nodes-dropdown');
+        if (attDropdown) attDropdown.value = selectedSubjectId;
+        if (mgmtDropdown) mgmtDropdown.value = selectedSubjectId;
+
+        document.querySelectorAll('.management-subject-wrapper').forEach(card => {
+            card.style.display = 'none';
+        });
+        if (selectedSubjectId) {
+            const activeCard = document.getElementById(`mgmt-card-${selectedSubjectId}`);
+            if (activeCard) activeCard.style.display = 'block';
+        }
+
+        const rows = document.querySelectorAll('.premium-matrix-table tbody tr.premium-row');
+        let totalVisibleRows = 0;
+
+        rows.forEach(row => {
+            const rowId = row.getAttribute('data-subject-id');
+            if (!selectedSubjectId || rowId === selectedSubjectId) {
+                row.style.display = '';
+                totalVisibleRows++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        let emptyStateRow = document.getElementById('history-empty-placeholder-row');
+        if (totalVisibleRows === 0) {
+            if (!emptyStateRow) {
+                emptyStateRow = document.createElement('tr');
+                emptyStateRow.id = 'history-empty-placeholder-row';
+                emptyStateRow.innerHTML = `<td colspan="4" style="text-align: center; color: #666; padding: 25px; font-style: italic;">No execution history logs tracked for this subject structure node.</td>`;
+                document.querySelector('.premium-matrix-table tbody').appendChild(emptyStateRow);
+            } else {
+                emptyStateRow.style.display = '';
+            }
+        } else if (emptyStateRow) {
+            emptyStateRow.style.display = 'none';
+        }
+    }
+
+    function downloadAttendanceCSV() {
+        const table = document.querySelector('.premium-matrix-table');
+        if (!table) return;
+
+        let csvLines = [];
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => `"${th.innerText.trim()}"`);
+        csvLines.push(headers.join(','));
+
+        // Isolate only the visible table rows matching the current dropdown filters
+        const rows = Array.from(table.querySelectorAll('tbody tr.premium-row')).filter(row => row.style.display !== 'none');
+        if (rows.length === 0) {
+            alert("No available history logged for this view to execute download operations.");
+            return;
+        }
+
+        rows.forEach(row => {
+            const columns = row.querySelectorAll('td');
+            let rowData = [];
+            columns.forEach(col => {
+                let textCleaned = col.innerText.replace(/\n/g, ' | ').replace(/"/g, '""').trim();
+                rowData.push(`"${textCleaned}"`);
+            });
+            csvLines.push(rowData.join(','));
+        });
+
+        //  Pack data using an explicit Blob array payload rather than vulnerable URI text encodings
+        const csvString = csvLines.join("\n");
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvString], { type: 'text/csv;charset=utf-8;' });
+        const blobUrl = URL.createObjectURL(blob);
+    
+        const systemDownloaderLink = document.createElement("a");
+        systemDownloaderLink.setAttribute("href", blobUrl);
+        systemDownloaderLink.setAttribute("download", "Filtered_Attendance_Audit_Ledger.csv");
+        document.body.appendChild(systemDownloaderLink);
+    
+        // Deploy download click execution anchor
+        systemDownloaderLink.click();
+    
+        // Clean memory arrays securely
+        document.body.removeChild(systemDownloaderLink);
+        URL.revokeObjectURL(blobUrl);
+    }
+    function switchTab(id) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-btn-${id}`).classList.add('active');
+        document.querySelectorAll('.panel-layer').forEach(p => p.classList.remove('active-layer'));
+        document.getElementById(`panel-${id}`).classList.add('active-layer');
+        localStorage.setItem('activeTab', id);
+    }
+
+    window.onload = () => {
+        const savedTab = localStorage.getItem('activeTab') || 'take-attendance';
+        switchTab(savedTab);
+        
+        const dropdown = document.getElementById('manage-nodes-dropdown');
+        if (dropdown && dropdown.options.length > 1) {
+            dropdown.selectedIndex = 1;
+            toggleSubjectCardVisibility(dropdown.value);
+        } else {
+            toggleSubjectCardVisibility(""); 
+        }
+    };
+
+    async function createNewSubject(event) {
+        event.preventDefault();
+        const form = event.target;
+        const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        const response = await fetch('/add-subject/', {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        if (response.ok) window.location.reload();
+    }
+
+    function toggleEdit(btn, show) {
+        const card = btn.closest('.subject-node-card');
+        card.querySelector('.display-mode').style.display = show ? 'none' : 'block';
+        card.querySelector('.edit-mode').style.display = show ? 'block' : 'none';
+    }
+
+    async function saveEdit(id, btn) {
+        const card = btn.closest('.subject-node-card');
+        const data = {
+            name: card.querySelector('.edit-name').value,
+            code: card.querySelector('.edit-code').value,
+            class_name: card.querySelector('.edit-class').value,
+            section: card.querySelector('.edit-section').value
+        };
+        const response = await fetch(`/rename-subject/${id}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (response.ok) window.location.reload();
+    }
+
+    async function deleteSubject(subjectId) {
+        if (!confirm("Delete this subject?")) return;
+        const response = await fetch(`/delete-subject/${subjectId}/`, { 
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        });
+        if (response.ok) window.location.reload();
+    }
+
+    function toggleShareOptions(id) {
+        const panel = document.getElementById(`share-options-${id}`);
+        panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+    }
+
+    function showQR(url, elementId) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = "";
+        new QRCode(container, { text: url, width: 100, height: 100 });
+    }
+
+    function copyLink(url) {
+        navigator.clipboard.writeText(url).then(() => alert("Link copied!"));
+    }
+</script>
+{% endblock content %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block header_actions %}
+<div class="back-to-home-container">
+    <a href="{% url 'home_page' %}" class="back-link">← Back to Home</a>
+</div>
+{% endblock header_actions %}
+
+{% block content %}
+<div class="glass-card login-card" style="margin-top: 60px; max-width: 450px; margin-left: auto; margin-right: auto; box-sizing: border-box;">
+    <h1 style="color: var(--cyan); font-weight: 600; font-size: 1.5rem; margin-bottom: 8px; display: flex; align-items: center; white-space: nowrap; justify-content: center; gap: 10px; text-align: center;">
+        🔑 Student Authentication
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; text-align: center; margin-bottom: 24px;">Access your personal attendance record.</p>
+    
+    <hr style="border: 0; border-top: 1px solid var(--card-border); margin-bottom: 25px;">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 0.9rem; 
+                        background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; text-align: center;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'student_login' %}" autocomplete="off" style="width: 100%;">
+    {% csrf_token %}
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%;">
+            <label for="login_roll">University Roll Number</label>
+            <input type="text" id="login_roll" name="roll_number" class="form-input" placeholder="Enter your roll number" autocomplete="new-password" required style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div class="form-group" style="box-sizing: border-box; width: 100%; margin-bottom: 25px;">
+            <label for="login_password">Password</label>
+            <input type="text" 
+               id="login_password" 
+               name="password" 
+               class="form-input" 
+               placeholder="••••••••" 
+               autocomplete="new-password"
+               onfocus="this.type='password'" 
+               oninput="this.type='password'"
+               required 
+               style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <!-- Submission Controls -->
+        <div class="form-actions-container" style="display: flex; flex-direction: column; gap: 15px; width: 100%; box-sizing: border-box;">
+            <button type="submit" style="width: 100%; padding: 14px; background: #00f3ff; color: #060913; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.2s; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); letter-spacing: 0.3px; text-align: center;">
+                Verify & Enter
+            </button>
+            <a href="{% url 'student_signup' %}" class="btn-link-secondary" style="text-align: center; color: var(--text-muted); font-size: 0.9rem; text-decoration: none; margin-top: 5px;">
+                New to Portal User? Register Now
+            </a>
+        </div>
+    </form>
+</div>
+
+
+<style>
+    .form-input {
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    /* Turns borders into radiant cyan/blue when clicked */
+    .form-input:focus {
+        border-color: #00f3ff !important;
+        box-shadow: 0 0 10px rgba(0, 243, 255, 0.25) !important;
+        outline: none !important;
+    }
+</style>
+{% endblock %}

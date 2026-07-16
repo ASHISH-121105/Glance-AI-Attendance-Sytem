@@ -1,0 +1,15 @@
+.env
+.vscode
+
+*.pyc
+__pycache__/
+
+# Environments
+venv/
+env/
+
+
+# Local Database
+db.sqlite3
+
+*.exe

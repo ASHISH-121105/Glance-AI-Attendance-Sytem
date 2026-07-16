@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GLANCE{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="site-wrapper">
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="{% url 'home_page' %}" class="header-logo-group">
+                <div class="mini-logo">
+                    <div class="mini-ring"></div>
+                    <div class="mini-core"></div>
+                </div>
+                <span class="brand-text">GLANCE</span>
+            </a>
+            
+            {% block header_actions %}
+            {% endblock %}
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; 2026 GLANCE Core. All Rights Reserved Engine Ecosystem.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Utilities
+
+# Install the libraries
+
+numpy 
+pandas 
+
+#Face Recognition
+scikit-learn # face classification
+dlib-bin
+
+# installing models from github
+git+https://github.com/ageitgey/face_recognition_models
+setuptools<70.0.0
+
+# Database
+supabase #online db
+bcrypt # gives hashing methods for password
+
+
+segno # generate QR
+pillow # images ki pre-processing
+
+librosa # audio files - load, split, remove noise 
+resemblyzer # creates embeddings of audio

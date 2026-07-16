@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header_actions %}
+<!-- Role Identifier Badge -->
+<div class="portal-brand" style="color: var(--cyan); font-weight: 700; letter-spacing: 0.5px; font-size: 1rem; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 1001;">
+    <span>🎓 STUDENT PORTAL</span>
+</div>
+
+<!-- Logout Link -->
+<a href="{% url 'student_logout' %}" class="logout-btn" style="text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; box-sizing: border-box;">
+    🚪 Logout
+</a>
+{% endblock header_actions %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+<div class="student-container" style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; max-width: 1200px; margin: 0 auto; padding: 20px;">
+    
+    <!-- LEFT PANEL: SIDEBAR CONTROLS -->
+    <div class="sidebar-panel" style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <div class="glass-card" style="padding: 20px; border-radius: 12px; background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+            <div style="margin-bottom: 15px;">
+                <span class="status-badge status-active" style="background: #00d4ff; color: #000; font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">✨ ENROLLMENT HUB</span>
+                <h3 style="margin: 10px 0 5px 0; color: #fff;">Enroll in a Class</h3>
+                <p style="color: #888; font-size: 0.85em; margin: 0;">Enter the subject code and section provided by your instructor to link your node.</p>
+            </div>
+
+            <form id="class-enrollment-form" method="POST" action="{% url 'student_enroll' %}">
+                {% csrf_token %}
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 0.8em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Subject Code</label>
+                    <input type="text" id="enroll-code" name="subject_code" placeholder="e.g. NCS601" class="form-input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff;" required>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 0.8em; color: #00d4ff; margin-bottom: 4px; font-weight: bold;">Section</label>
+                    <input type="text" id="enroll-section" name="section" placeholder="e.g. 6A" class="form-input" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff;" required>
+                </div>
+
+                <button type="submit" class="btn-submit-primary" style="width: 100%; background: #00d4ff; color: #000; font-weight: bold; padding: 10px; border: none; border-radius: 6px; cursor: pointer;">
+                    Confirm Class Enrollment
+                </button>
+            </form>
+        </div>
+
+        <!-- DROPDOWN OPTION -->
+        <div class="glass-card" style="padding: 20px; border-radius: 12px;">
+            <h4 style="margin: 0 0 15px 0; color: #fff; border-bottom: 1px solid #333; padding-bottom: 8px;">My Enrolled Classes</h4>
+            
+            <select class="subject-dropdown-select" 
+                    onchange="if(this.value) window.location.href=this.value;"
+                    style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #444; background: #111424; color: #fff; font-size: 0.9rem; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s;">
+                
+                <option value="" disabled {% if not selected_subject and not subject %}selected{% endif %}>-- Select Enrolled Subject --</option>
+                
+                {% if enrolled_classes %}
+                    {% for sub in enrolled_classes %}
+                        <option value="{% url 'student_dashboard' %}?subject_id={{ sub.id }}" 
+                                {% if selected_subject.id == sub.id or subject.id == sub.id %}selected{% endif %}>
+                            {{ sub.name }} [{{ sub.code }} - {{ sub.section }}]
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    {% for sub in subjects %}
+                        <option value="{% url 'student_dashboard' %}?subject_id={{ sub.id }}" 
+                                {% if selected_subject.id == sub.id or subject.id == sub.id %}selected{% endif %}>
+                            {{ sub.name }} [{{ sub.code }} - {{ sub.section }}]
+                        </option>
+                    {% empty %}
+                        <!-- Visual fallback text if list array is null -->
+                    {% endfor %}
+                {% endif %}
+            </select>
+
+            {% if not enrolled_classes and not subjects %}
+                <p style="color: #555; font-size: 0.85em; margin: 12px 0 0 0; text-align: center;">No subjects tracked yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL: CONTENT WORKSPACE DISPLAY -->
+    <div class="main-panel">
+        <div class="glass-card" style="padding: 25px; border-radius: 12px; min-height: 480px; display: flex; flex-direction: column;">
+            
+            {% if selected_subject or subject %}
+                <div id="subject-details-panel" style="display: flex; flex-direction: column; flex-grow: 1;">
+                    <div style="border-left: 4px solid #00d4ff; padding-left: 15px; margin-bottom: 25px;">
+                        <span class="status-badge status-active" style="background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid #00d4ff; padding: 2px 8px; border-radius: 4px; font-size: 0.8em;">✓ Linked Matrix Node</span>
+                        
+                        <h2 style="margin: 8px 0 4px 0; color: #fff;">
+                            {% if selected_subject %}{{ selected_subject.name }}{% else %}{{ subject.name }}{% endif %}
+                        </h2>
+                        <p style="margin: 0; color: #aaa; font-size: 0.95em;">
+                            Classroom Block: <strong style="color: #00d4ff;">{% if selected_subject %}{{ selected_subject.class_name }}{% else %}{{ subject.class_name }}{% endif %}</strong> | Allocated Section: <strong style="color: #00d4ff;">{% if selected_subject %}{{ selected_subject.section }}{% else %}{{ subject.section }}{% endif %}</strong>
+                        </p>
+                        <p style="margin: 4px 0 0 0; color: #666; font-size: 0.85em;">
+                            Subject Syllabus Registration Reference: {% if selected_subject %}{{ selected_subject.code }}{% else %}{{ subject.code }}{% endif %}
+                        </p>
+                    </div>
+
+                    <!-- ATTENDANCE METRICS -->
+                    <div class="attendance-metrics-grid">
+                        <div class="metric-data-card accent-ratio">
+                            <div class="metric-data-value value-slate">{{ attendance_stats.present|default:0 }} / {{ attendance_stats.total|default:0 }}</div>
+                            <label class="metric-data-label">Sessions Held</label>
+                        </div>
+                        <div class="metric-data-card accent-present">
+                            <div class="metric-data-value value-cyan">{{ attendance_stats.present|default:0 }}</div>
+                            <label class="metric-data-label">Present Marked</label>
+                        </div>
+                        <div class="metric-data-card accent-absent">
+                            <div class="metric-data-value value-coral">{{ attendance_stats.absent|default:0 }}</div>
+                            <label class="metric-data-label">Absent Marked</label>
+                        </div>
+                        <div class="metric-data-card accent-percentage">
+                            <div class="metric-data-value value-emerald">{{ attendance_stats.percentage|default:"0.0" }}%</div>
+                            <label class="metric-data-label">Total Percentage</label>
+                        </div>
+                    </div>
+
+                    <!-- HISTORY LOG VIEW -->
+                    <div class="attendance-history-ledger" style="display: flex; flex-direction: column; flex-grow: 1;">
+                        <div class="ledger-header-banner">Date-Wise Attendance History Log</div>
+                        <div class="ledger-scroller-viewport">
+                            {% for record in records_history %}
+                                <div class="ledger-history-row">
+                                    <div class="ledger-history-date">{{ record.session.created_at|date:"l, F d, Y" }}</div>
+                                    <div>
+                                        {% if record.status == "Present" %}
+                                            <span class="status-pill pill-present">✓ Present</span>
+                                        {% else %}
+                                            <span class="status-pill pill-absent">✕ Absent</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="ledger-empty-placeholder">
+                                    <span>📋</span>
+                                    <p>No verified entry logs processed for this course yet.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="dashboard-welcome" style="text-align: center; margin-top: 100px;">
+                    <span style="font-size: 50px; display: block; margin-bottom: 15px;">🏫</span>
+                    <h2 style="color: #fff; margin-bottom: 8px;">Glance Student Dashboard</h2>
+                    <p style="color: #888; max-width: 450px; margin: 0 auto; font-size: 0.95em; line-height: 1.5;">
+                        Welcome to your dashboard. Select a class from the side panel to examine your attendance, or use the Enrollment Hub to enroll in a new subject.
+                    </p>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<!-- Micro-Transitions Style Override -->
+<style>
+    .subject-dropdown-select:focus {
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 12px rgba(0, 212, 255, 0.3) !important;
+        outline: none;
+    }
+    /* Darkens dropdown option background wrappers in some local layout engines */
+    .subject-dropdown-select option {
+        background: #0c1020;
+        color: #fff;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeParam = urlParams.get('code');
+        const sectionParam = urlParams.get('section');
+
+        if (codeParam) {
+            document.getElementById('enroll-code').value = codeParam.trim().toUpperCase();
+        }
+        if (sectionParam) {
+            document.getElementById('enroll-section').value = sectionParam.trim().toUpperCase();
+        }
+    });
+</script>
+{% endblock content %}

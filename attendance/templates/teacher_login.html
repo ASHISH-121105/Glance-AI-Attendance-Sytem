@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block header_actions %}
+<div class="back-to-home-container">
+    <a href="{% url 'home_page' %}" class="back-link">← Back to Home</a>
+</div>
+{% endblock header_actions %}
+
+{% block content %}
+<div class="glass-card" style="margin-top: 40px; max-width: 420px; margin-left: auto; margin-right: auto;">
+    <h1 style="color: var(--success); font-weight: 600; font-size: 1.5rem; margin-bottom: 8px; display: flex; align-items: center; white-space: nowrap; justify-content: center; gap: 10px; text-align: center;">
+        🔐 Teacher Authentication
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px; text-align: center;">Login to your Teacher Portal.</p>
+    
+    <hr style="border: 0; border-top: 1px solid var(--card-border); margin-bottom: 25px;">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; margin-bottom: 20px; border-radius: 6px; font-size: 0.9rem; 
+                        background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" action="{% url 'teacher_login' %}" autocomplete="off">
+        {% csrf_token %}
+
+        <input type="text" name="prevent_autofill_user" style="display:none" aria-hidden="true">
+        <input type="password" name="prevent_autofill_pass" style="display:none" aria-hidden="true">
+
+        <div class="form-group">
+            <label for="login_username">Username</label>
+            <input type="text" id="login_username" name="auth_username" class="form-input" placeholder="Enter username" autocomplete="one-time-code" required>
+        </div>
+
+        <div class="form-group">
+            <label for="login_password">Password</label>
+            <input type="password" id="login_password" name="auth_password" class="form-input" placeholder="••••••••" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-actions-container">
+            <button type="submit" class="btn-submit-primary">
+                Verify & Enter
+            </button>
+            <a href="{% url 'teacher_signup' %}" class="btn-link-secondary">
+                New to Teacher Portal? Register Now
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
