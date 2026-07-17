@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 
 {% block header_actions %}
-<div class="back-to-home-container">
-    <a href="{% url 'home_page' %}" class="back-link">← Back to Home</a>
+<div class="back-to-home-container" style="display: flex; align-items: center; margin-left: auto;">
+    <a href="{% url 'home_page' %}" class="back-link" style="color: var(--cyan, #00f3ff); text-decoration: none; font-size: 1rem; font-weight: 500; text-shadow: 0 0 8px rgba(0, 243, 255, 0.3);">
+        ← Back to Home
+    </a>
 </div>
 {% endblock header_actions %}
 
