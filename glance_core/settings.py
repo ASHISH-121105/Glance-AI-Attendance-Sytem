@@ -24,15 +24,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-_zfox8!i@q&r6)9-rl^_5@ja^vk(o3_z2+y&fd8=wp6h%j++uc"
 
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-_zfox8!i@q&r6)9-rl^_5@ja^vk(o3_z2+y&fd8=wp6h%j++uc')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
+    'glance-ai-attendance-sytem.onrender.com',
     'localhost', 
     '127.0.0.1', 
-    'your-app-name.onrender.com'
+    '0.0.0.0'
 ]
 
 
@@ -131,6 +132,10 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / 'attendance' / 'static',
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
